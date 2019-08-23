@@ -61,14 +61,13 @@ implicit or explicit context propagation consistently throughout.
 .. versionadded:: 0.1.0
 """
 
-from contextlib import contextmanager
 import typing
+from contextlib import contextmanager
 
-from opentelemetry import loader
-from opentelemetry import types
+from opentelemetry import loader, types
 
 # TODO: quarantine
-ParentSpan = typing.Optional[typing.Union['Span', 'SpanContext']]
+ParentSpan = typing.Optional[typing.Union["Span", "SpanContext"]]
 
 
 class Span:
@@ -93,7 +92,7 @@ class Span:
         implementations are free to ignore or raise on further calls.
         """
 
-    def get_context(self) -> 'SpanContext':
+    def get_context(self) -> "SpanContext":
         """Gets the span's SpanContext.
 
         Get an immutable, serializable identifier for this span that can be
@@ -103,29 +102,24 @@ class Span:
             A :class:`.SpanContext` with a copy of this span's immutable state.
         """
 
-    def set_attribute(self: 'Span',
-                      key: str,
-                      value: types.AttributeValue,
-                      ) -> None:
+    def set_attribute(self: "Span", key: str, value: types.AttributeValue) -> None:
         """Sets an Attribute.
 
         Sets a single Attribute with the key and value passed as arguments.
         """
 
-    def add_event(self: 'Span',
-                  name: str,
-                  attributes: types.Attributes = None,
-                  ) -> None:
+    def add_event(self: "Span", name: str, attributes: types.Attributes = None) -> None:
         """Adds an Event.
 
         Adds a single Event with the name and, optionally, attributes passed
         as arguments.
         """
 
-    def add_link(self: 'Span',
-                 link_target_context: 'SpanContext',
-                 attributes: types.Attributes = None,
-                 ) -> None:
+    def add_link(
+        self: "Span",
+        link_target_context: "SpanContext",
+        attributes: types.Attributes = None,
+    ) -> None:
         """Adds a Link to another span.
 
         Adds a single Link from this Span to another Span identified by the
@@ -144,11 +138,12 @@ class TraceOptions(int):
     .. _W3C Trace Context - Traceparent:
         https://www.w3.org/TR/trace-context/#trace-flags
     """
+
     DEFAULT = 0x00
     RECORDED = 0x01
 
     @classmethod
-    def get_default(cls) -> 'TraceOptions':
+    def get_default(cls) -> "TraceOptions":
         return cls(cls.DEFAULT)
 
 
@@ -167,7 +162,7 @@ class TraceState(typing.Dict[str, str]):
     """
 
     @classmethod
-    def get_default(cls) -> 'TraceState':
+    def get_default(cls) -> "TraceState":
         return cls()
 
 
@@ -175,11 +170,11 @@ DEFAULT_TRACE_STATE = TraceState.get_default()
 
 
 def format_trace_id(trace_id: int) -> str:
-    return '0x{:032x}'.format(trace_id)
+    return "0x{:032x}".format(trace_id)
 
 
 def format_span_id(span_id: int) -> str:
-    return '0x{:016x}'.format(span_id)
+    return "0x{:016x}".format(span_id)
 
 
 class SpanContext:
@@ -195,12 +190,13 @@ class SpanContext:
         state: Tracing-system-specific info to propagate.
     """
 
-    def __init__(self,
-                 trace_id: int,
-                 span_id: int,
-                 trace_options: 'TraceOptions' = None,
-                 trace_state: 'TraceState' = None
-                 ) -> None:
+    def __init__(
+        self,
+        trace_id: int,
+        span_id: int,
+        trace_options: "TraceOptions" = None,
+        trace_state: "TraceState" = None,
+    ) -> None:
         if trace_options is None:
             trace_options = DEFAULT_TRACE_OPTIONS
         if trace_state is None:
@@ -211,12 +207,11 @@ class SpanContext:
         self.trace_state = trace_state
 
     def __repr__(self) -> str:
-        return ("{}(trace_id={}, span_id={})"
-                .format(
-                    type(self).__name__,
-                    format_trace_id(self.trace_id),
-                    format_span_id(self.span_id)
-                ))
+        return "{}(trace_id={}, span_id={})".format(
+            type(self).__name__,
+            format_trace_id(self.trace_id),
+            format_span_id(self.span_id),
+        )
 
     def is_valid(self) -> bool:
         """Get whether this `SpanContext` is valid.
@@ -227,8 +222,7 @@ class SpanContext:
         Returns:
             True if the `SpanContext` is valid, false otherwise.
         """
-        return (self.trace_id != INVALID_TRACE_ID and
-                self.span_id != INVALID_SPAN_ID)
+        return self.trace_id != INVALID_TRACE_ID and self.span_id != INVALID_SPAN_ID
 
 
 class DefaultSpan(Span):
@@ -236,17 +230,19 @@ class DefaultSpan(Span):
 
     All operations are no-op except context propagation.
     """
-    def __init__(self, context: 'SpanContext') -> None:
+
+    def __init__(self, context: "SpanContext") -> None:
         self._context = context
 
-    def get_context(self) -> 'SpanContext':
+    def get_context(self) -> "SpanContext":
         return self._context
 
 
 INVALID_SPAN_ID = 0x0000000000000000
 INVALID_TRACE_ID = 0x00000000000000000000000000000000
-INVALID_SPAN_CONTEXT = SpanContext(INVALID_TRACE_ID, INVALID_SPAN_ID,
-                                   DEFAULT_TRACE_OPTIONS, DEFAULT_TRACE_STATE)
+INVALID_SPAN_CONTEXT = SpanContext(
+    INVALID_TRACE_ID, INVALID_SPAN_ID, DEFAULT_TRACE_OPTIONS, DEFAULT_TRACE_STATE
+)
 INVALID_SPAN = DefaultSpan(INVALID_SPAN_CONTEXT)
 
 
@@ -261,7 +257,7 @@ class Tracer:
     # This is the default behavior when creating spans.
     CURRENT_SPAN = Span()
 
-    def get_current_span(self) -> 'Span':
+    def get_current_span(self) -> "Span":
         """Gets the currently active span from the context.
 
         If there is no current span, return a placeholder span with an invalid
@@ -275,10 +271,9 @@ class Tracer:
         return INVALID_SPAN
 
     @contextmanager  # type: ignore
-    def start_span(self,
-                   name: str,
-                   parent: ParentSpan = CURRENT_SPAN
-                   ) -> typing.Iterator['Span']:
+    def start_span(
+        self, name: str, parent: ParentSpan = CURRENT_SPAN
+    ) -> typing.Iterator["Span"]:
         """Context manager for span creation.
 
         Create a new span. Start the span and set it as the current span in
@@ -324,10 +319,7 @@ class Tracer:
         # pylint: disable=unused-argument,no-self-use
         yield INVALID_SPAN
 
-    def create_span(self,
-                    name: str,
-                    parent: ParentSpan = CURRENT_SPAN
-                    ) -> 'Span':
+    def create_span(self, name: str, parent: ParentSpan = CURRENT_SPAN) -> "Span":
         """Creates a span.
 
         Creating the span does not start it, and should not affect the tracer's
@@ -362,7 +354,7 @@ class Tracer:
         return INVALID_SPAN
 
     @contextmanager  # type: ignore
-    def use_span(self, span: 'Span') -> typing.Iterator[None]:
+    def use_span(self, span: "Span") -> typing.Iterator[None]:
         """Context manager for controlling a span's lifetime.
 
         Start the given span and set it as the current span in this tracer's
@@ -380,7 +372,8 @@ class Tracer:
 
 _TRACER: typing.Optional[Tracer] = None
 _TRACER_FACTORY: typing.Optional[
-    typing.Callable[[typing.Type[Tracer]], typing.Optional[Tracer]]] = None
+    typing.Callable[[typing.Type[Tracer]], typing.Optional[Tracer]]
+] = None
 
 
 def tracer() -> Tracer:
@@ -399,9 +392,8 @@ def tracer() -> Tracer:
 
 
 def set_preferred_tracer_implementation(
-        factory: typing.Callable[
-            [typing.Type[Tracer]], typing.Optional[Tracer]]
-        ) -> None:
+    factory: typing.Callable[[typing.Type[Tracer]], typing.Optional[Tracer]]
+) -> None:
     """Set the factory to be used to create the tracer.
 
     See :mod:`opentelemetry.loader` for details.
