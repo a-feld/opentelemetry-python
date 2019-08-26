@@ -66,8 +66,9 @@ def error_wsgi(environ, start_response):
 class TestWsgiApplication(unittest.TestCase):
     def setUp(self):
         tracer = trace_api.tracer()
-        self.span_context_manager = mock.MagicMock()
-        self.span_context_manager.__enter__.return_value = mock.create_autospec(
+        span_context_manager = mock.MagicMock()
+        self.span_context_manager = span_context_manager
+        span_context_manager.__enter__.return_value = mock.create_autospec(
             trace_api.Span, spec_set=True
         )
         self.patcher = mock.patch.object(
@@ -75,7 +76,7 @@ class TestWsgiApplication(unittest.TestCase):
             "start_span",
             autospec=True,
             spec_set=True,
-            return_value=self.span_context_manager,
+            return_value=span_context_manager,
         )
         self.start_span = self.patcher.start()
 
