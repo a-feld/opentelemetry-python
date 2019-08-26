@@ -142,7 +142,7 @@ import typing
 
 from .base_context import BaseRuntimeContext
 
-__all__ = ['Context']
+__all__ = ["Context"]
 
 
 Context = (  # pylint: disable=invalid-name
@@ -151,7 +151,9 @@ Context = (  # pylint: disable=invalid-name
 
 try:
     from .async_context import AsyncRuntimeContext
+
     Context = AsyncRuntimeContext()  # pylint:disable=invalid-name
 except ImportError:
     from .thread_local_context import ThreadLocalRuntimeContext
+
     Context = ThreadLocalRuntimeContext()  # pylint:disable=invalid-name

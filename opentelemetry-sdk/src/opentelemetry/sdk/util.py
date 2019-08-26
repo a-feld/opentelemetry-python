@@ -18,5 +18,6 @@ try:
     time_ns = time.time_ns  # pylint: disable=invalid-name
 # Python versions < 3.7
 except AttributeError:
+
     def time_ns():
         return int(time.time() * 1e9)
